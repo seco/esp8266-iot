@@ -17,7 +17,7 @@
 
 #define INTERRUPTPIN 2   // Arduino pin which is connected to INT1 from the ADXL345
 
-const char* ssid     = "c";
+const char* ssid     = "c";//clear
 const char* password = "-86";
 const char* host = "192.168.1.7";
 int eprom_address = 0;
