@@ -1,0 +1,6 @@
+gpio 0 - flash
+gpio 2 - high
+15 - low
+12 - scl
+14 - sca
+en - high
