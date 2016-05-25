@@ -28,8 +28,8 @@ void setup() {
   adxl.setInactivityZ(1);
 
   //look of tap movement on this axes - 1 == on; 0 == off
-  adxl.setTapDetectionOnX(0);
-  adxl.setTapDetectionOnY(0);
+  adxl.setTapDetectionOnX(1);
+  adxl.setTapDetectionOnY(1);
   adxl.setTapDetectionOnZ(1);
 
   //set values for what is a tap, and what is a double tap (0-255)
@@ -57,15 +57,24 @@ void setup() {
   adxl.setInterrupt( ADXL345_INT_ACTIVITY_BIT,   1);
   adxl.setInterrupt( ADXL345_INT_INACTIVITY_BIT, 1);
 
+  //wifi setup
 
-  //  WiFi.begin("shivashambu", "2013846675-86");
-  //
-  //  while (WiFi.status() != WL_CONNECTED) {
-  //    delay(500);
-  //    Serial.print(".");
-  //  }
+  Serial.println();
+  Serial.println();
+  Serial.print("Connecting to ");
+  Serial.println("shivashambu");
 
+  //WiFi.begin("shivashambu", "2013846675-86");
+  WiFi.begin("attwifi", "2013846675");
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
 
+  Serial.println("");
+  Serial.println("WiFi connected");
+  Serial.println("IP address: ");
+  Serial.println(WiFi.localIP());
 
 }
 
@@ -122,7 +131,12 @@ void loop() {
   //tap
   if (adxl.triggered(interrupts, ADXL345_SINGLE_TAP)) {
     Serial.println("tap");
-    postToServer("xaxis_tapped=true");
+    if (adxl.isTapSourceOnX())
+      postToServer("xaxis_tapped=true");
+    else if (adxl.isTapSourceOnY())
+      postToServer("yaxis_tapped=true");
+    else if (adxl.isTapSourceOnZ())
+      postToServer("zaxis_tapped=true");
     //add code here to do when a tap is sensed
   }
   //freefall
@@ -141,11 +155,12 @@ void postToServer(String data) {
   //return;
   HTTPClient http;
 
-  
+  Serial.println(data);
+
   Serial.print("[HTTP] begin...\n");
   // configure traged server and url
   //http.begin("https://192.168.1.12/test.html", "7a 9c f4 db 40 d3 62 5a 6e 21 bc 5c cc 66 c8 3e a1 45 59 38"); //HTTPS
-  http.begin("http://192.168.1.4:1337/postADXL345Data"); //HTTP
+  http.begin("http://cccnodeangularreferenceapp.azurewebsites.net/postADXL345Data"); //HTTP
 
   Serial.print("[HTTP] GET...\n");
   // start connection and send HTTP header

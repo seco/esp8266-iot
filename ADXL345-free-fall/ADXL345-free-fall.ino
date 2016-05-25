@@ -17,13 +17,13 @@
 
 #define INTERRUPTPIN 2   // Arduino pin which is connected to INT1 from the ADXL345
 
-const char* ssid     = "c";//clear1
-const char* password = "-86";
+const char* ssid     = "shivashambu";//clear1
+const char* password = "2013846675-86";
 const char* host = "192.168.1.7";
 int eprom_address = 0;
 int max_eprom_mem = 4 * 1024 * 1024;// 4 mb
 
-int dump_pin = 5;
+int dump_pin = 4;
 
 
 // Register map: see ADXL345 datasheet page 14
@@ -66,12 +66,12 @@ boolean inspected = 0;
 
 void setup()
 {
-  Wire.begin(14, 12);       // join i2c bus (address optional for master)
+  Wire.begin(0, 2);       //14,12,  0, 2 join i2c bus (address optional for master)
   Serial.begin(115200);  // start serial for output
   Serial.print("starting up....");
   pinMode(INTERRUPTPIN, INPUT);
-  EEPROM.begin(max_eprom_mem);
-  pinMode(dump_pin, INPUT);
+  //EEPROM.begin(max_eprom_mem);
+ // pinMode(dump_pin, INPUT);
 
   // interrupts setup
   writeTo(DEVICE, R_INT_MAP, 0); // send all interrupts to ADXL345's INT1 pin
@@ -153,30 +153,30 @@ unsigned int EEPROMReadInt(int p_address)
 void loop()
 {
 
-  if (digitalRead(dump_pin) == HIGH)
-  {
-    int address = 0;
-    for (address = 0 ; address < max_eprom_mem ; )
-    {
-      int value = EEPROMReadInt(address);
-      address += 2;
-      Serial.print("x:"); Serial.println(value);
-
-      value = EEPROMReadInt(address);
-      address += 2;
-      Serial.print("y:"); Serial.println(value);
-
-      value = EEPROMReadInt(address);
-      address += 2;
-      Serial.print("z:"); Serial.println(value);
-
-      address += 2;
-
-      delay(500);
-    }
-
-    return;
-  }
+//  if (digitalRead(dump_pin) == HIGH)
+//  {
+//    int address = 0;
+//    for (address = 0 ; address < max_eprom_mem ; )
+//    {
+//      int value = EEPROMReadInt(address);
+//      address += 2;
+//      Serial.print("x:"); Serial.println(value);
+//
+//      value = EEPROMReadInt(address);
+//      address += 2;
+//      Serial.print("y:"); Serial.println(value);
+//
+//      value = EEPROMReadInt(address);
+//      address += 2;
+//      Serial.print("z:"); Serial.println(value);
+//
+//      address += 2;
+//
+//      delay(500);
+//    }
+//
+//    return;
+//  }
   /*
     if(inspected == 0) {
     //delay(1000);
@@ -256,18 +256,18 @@ void loop()
   Serial.println(data);
   //It appears that delay is needed in order not to clog the port
 
-  EEPROMWriteInt(eprom_address, x);
-  eprom_address += 2;
+//  EEPROMWriteInt(eprom_address, x);
+//  eprom_address += 2;
+//
+//  EEPROMWriteInt(eprom_address, y);
+//  eprom_address += 2;
+//
+//  EEPROMWriteInt(eprom_address, z);
+//  eprom_address += 2;
 
-  EEPROMWriteInt(eprom_address, y);
-  eprom_address += 2;
-
-  EEPROMWriteInt(eprom_address, z);
-  eprom_address += 2;
-
-  EEPROM.commit();
+//  EEPROM.commit();
   
-  delay(500);
+  delay(1000);
 }
 
 
@@ -337,7 +337,6 @@ byte readByte(int device, byte address) {
 void postToServer2(String data)
 {
 
-
   Serial.print("connecting to ");
   Serial.println(host);
 
@@ -398,12 +397,13 @@ void postToServer2(String data)
 
 void postToServer(String data) {
 
+//return;
   HTTPClient http;
 
   Serial.print("[HTTP] begin...\n");
   // configure traged server and url
   //http.begin("https://192.168.1.12/test.html", "7a 9c f4 db 40 d3 62 5a 6e 21 bc 5c cc 66 c8 3e a1 45 59 38"); //HTTPS
-  http.begin("http://192.168.1.7:1337/postADXL345Data"); //HTTP
+  http.begin("http://192.168.1.4:1337/postADXL345Data"); //HTTP
 
   Serial.print("[HTTP] GET...\n");
   // start connection and send HTTP header

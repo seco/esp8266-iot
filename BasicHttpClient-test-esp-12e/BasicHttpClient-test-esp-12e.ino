@@ -31,7 +31,7 @@ void setup() {
         delay(1000);
     }
 
-    WiFiMulti.addAP("shivashambu", "-86");
+    WiFiMulti.addAP("shivashambu", "2013846675-86");
 
 }
 
@@ -44,7 +44,7 @@ void loop() {
         USE_SERIAL.print("[HTTP] begin...\n");
         // configure traged server and url
         //http.begin("https://192.168.1.12/test.html", "7a 9c f4 db 40 d3 62 5a 6e 21 bc 5c cc 66 c8 3e a1 45 59 38"); //HTTPS
-        http.begin("http://192.168.1.7:1337/getADXL345Data"); //HTTP
+        http.begin("http://192.168.1.8:1337/getADXL345Data"); //HTTP
 
         USE_SERIAL.print("[HTTP] GET...\n");
         // start connection and send HTTP header
@@ -67,6 +67,6 @@ void loop() {
         http.end();
     }
 
-    delay(10000);
+    delay(1000);
 }
 

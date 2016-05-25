@@ -31,8 +31,8 @@ void setup()
   Serial.println("Init - S. Thesen ESP8266 & ADXL345 Demo");
 
   // i2c bus SDA = GPIO0; SCL = GPIO2
-  Wire.begin(14, 12);
- //Wire.begin(0, 2);
+ // Wire.begin(14, 12);
+ Wire.begin(0, 2);
   // Put the ADXL345 into +/- 2G range by writing the value 0x01 to the DATA_FORMAT register.
   // FYI: 0x00 = 2G, 0x01 = 4G, 0x02 = 8G, 0x03 = 16G
   writeTo(DATA_FORMAT, 0x00);
