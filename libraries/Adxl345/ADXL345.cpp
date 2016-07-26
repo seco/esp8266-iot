@@ -28,8 +28,10 @@ ADXL345::ADXL345() {
 	gains[2] = 0.00349265;
 }
 
-void ADXL345::powerOn() {
-	Wire.begin(0,2);        // join i2c bus (address optional for master)
+void ADXL345::powerOn(int scl, int sca) {
+	Wire.begin(scl,sca);
+	//Wire.begin(0,2);        // join i2c bus (address optional for master)
+	//Wire.begin(14,12);        // join i2c bus (address optional for master)
 	//Turning on the ADXL345
 	writeTo(ADXL345_POWER_CTL, 0);      
 	writeTo(ADXL345_POWER_CTL, 16);

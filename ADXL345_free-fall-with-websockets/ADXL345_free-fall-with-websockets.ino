@@ -5,12 +5,51 @@
 #include <ADXL345.h>
 #include <ESP8266WiFi.h>
 #include <ESP8266HTTPClient.h>
+//#include <DHT.h>
 
 ADXL345 adxl; //variable adxl is an instance of the ADXL345 library
+//DHT dht(16, DHT11, 15);
+const int RED_LED = 15;
+const int BLUE_LED = 4;
+const int GREEN_LED = 5;
+
+void flashLeds(int state)
+{
+
+  if (state == HIGH)
+  {
+    analogWrite(RED_LED, 10);
+    analogWrite(BLUE_LED , 10);
+    analogWrite(GREEN_LED, 10);
+  }
+  else
+  {
+    analogWrite(RED_LED, 0);
+    analogWrite(BLUE_LED , 0);
+    analogWrite(GREEN_LED, 0);
+  }
+
+
+
+  //  digitalWrite(RED_LED, state);
+  //  digitalWrite(BLUE_LED , state);
+  //  digitalWrite(GREEN_LED, state);
+
+  //  delay(1000);
+  //  digitalWrite(RED_LED, LOW);
+  //  digitalWrite(BLUE_LED , LOW);
+  //  digitalWrite(GREEN_LED, LOW);
+
+}
 
 void setup() {
   Serial.begin(9600);
-  adxl.powerOn();
+  adxl.powerOn(14, 12);
+  //dht.begin();
+  pinMode(A0, INPUT);
+  pinMode(BLUE_LED, OUTPUT);
+  pinMode(RED_LED, OUTPUT);
+  pinMode(GREEN_LED, OUTPUT);
 
   //set activity/ inactivity thresholds (0-255)
   adxl.setActivityThreshold(75); //62.5mg per increment
@@ -64,11 +103,13 @@ void setup() {
   Serial.print("Connecting to ");
   Serial.println("shivashambu");
 
-  //WiFi.begin("shivashambu", "2013846675-86");
-  WiFi.begin("attwifi", "2013846675");
+  WiFi.begin("shivashambu", "2013846675-86");
+  // WiFi.begin("attwifi", "2013846675");
   while (WiFi.status() != WL_CONNECTED) {
+    flashLeds(HIGH);
     delay(500);
     Serial.print(".");
+    flashLeds(LOW);
   }
 
   Serial.println("");
@@ -80,12 +121,22 @@ void setup() {
 
 void loop() {
 
+
+  //read temp
+
+  float ADC = analogRead(A0) / 1024.0;
+  float temperatureC = (ADC - 0.5) * 100 ;
+  //Serial.print(temperatureC); Serial.println(" degrees C");
+  int temperatureF = (temperatureC * 9.0 / 5.0) + 32.0;
+  Serial.print(temperatureF); Serial.println(" degrees F");
+
+  
   //Boring accelerometer stuff
   int x, y, z;
   adxl.readAccel(&x, &y, &z); //read the accelerometer values and store them in variables  x,y,z
 
   char str[512];
-  sprintf(str, "%d,%d,%d", x, y, z);
+  sprintf(str, "%d,%d,%d,%d", x, y, z, temperatureF);
   Serial.println(str);
   //Serial.print(10);
   String data = "coordinates=" ;
@@ -146,7 +197,44 @@ void loop() {
     //add code here to do when a tap is sensed
   }
 
+
+  //dht
+  //  float h = dht.readHumidity();
+  //  float t = dht.readTemperature(true);
+  //  if (isnan(h) || isnan(t)) {
+  //    Serial.println("Failed to read from DHT sensor!");
+  //    delay(1000);
+  //    return;
+  //  }
+  //
+  //  Serial.print("Temperature: ");
+  //  Serial.print(t);
+  //  Serial.print(" degrees Celcius Humidity: ");
+  //  Serial.print(h);
+
+  //tmp35
+
+
+  //  int reading = analogRead(A0);
+  //  float voltage = reading * 5.0;
+  //  voltage /= 1024.0;
+  //
+  //  // print out the voltage
+  //  Serial.print(voltage); Serial.println(" volts");
+  //
+  //  // now print out the temperature
+  //  float temperatureC = (voltage - 0.5) * 100 ;  //converting from 10 mv per degree wit 500 mV offset
+  //  //to degrees ((voltage - 500mV) times 100)
+  //  Serial.print(temperatureC); Serial.println(" degrees C");
+  //
+  //  // now convert to Fahrenheit
+  //  float temperatureF = (temperatureC * 9.0 / 5.0) + 32.0;
+  //  Serial.print(temperatureF); Serial.println(" degrees F");
+
+
+  flashLeds( HIGH);
   delay(1000);
+  flashLeds( LOW);
 
 }
 
@@ -160,7 +248,7 @@ void postToServer(String data) {
   Serial.print("[HTTP] begin...\n");
   // configure traged server and url
   //http.begin("https://192.168.1.12/test.html", "7a 9c f4 db 40 d3 62 5a 6e 21 bc 5c cc 66 c8 3e a1 45 59 38"); //HTTPS
-  http.begin("http://cccnodeangularreferenceapp.azurewebsites.net/postADXL345Data"); //HTTP
+  http.begin("http://ccc-iot-node-app.azurewebsites.net/postADXL345Data"); //HTTP
 
   Serial.print("[HTTP] GET...\n");
   // start connection and send HTTP header

@@ -111,7 +111,7 @@ public:
 	double gains[3];        // counts to Gs
 	
 	ADXL345();
-	void powerOn();
+	void powerOn(int scl, int sca);
 	void readAccel(int* xyx);
 	void readAccel(int* x, int* y, int* z);
 	void get_Gxyz(double *xyz);
