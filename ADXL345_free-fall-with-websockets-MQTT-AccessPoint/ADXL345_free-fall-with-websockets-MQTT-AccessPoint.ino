@@ -79,7 +79,7 @@ void setup ( void ) {
   {
     // DEFAULT CONFIG
     config.ssid = "shivashambu";
-    config.password = "2013846675-86";
+    config.password = "";
     config.dhcp = true;
     config.IP[0] = 192; config.IP[1] = 168; config.IP[2] = 1; config.IP[3] = 100;
     config.Netmask[0] = 255; config.Netmask[1] = 255; config.Netmask[2] = 255; config.Netmask[3] = 0;
