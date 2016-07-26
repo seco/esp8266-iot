@@ -4,7 +4,7 @@
 #include <ArduinoOTA.h>
 
 const char* ssid = "shivashambu";
-const char* password = "2013846675-86";
+const char* password = "";
 
 void setup() {
   Serial.begin(115200);
