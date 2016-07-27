@@ -10,7 +10,7 @@ unsigned long UnixTimestamp = 0;                // GLOBALTIME  ( Will be set by 
 boolean Refresh = false; // For Main Loop, to refresh things like GPIO / WS2812
 int cNTP_Update = 0;                      // Counter for Updating the time via NTP
 Ticker tkSecond;                        // Second - Timer for Updating Datetime Structure
-boolean AdminEnabled = true;    // Enable Admin Mode for a given Time
+
 byte Minute_Old = 100;        // Helpvariable for checking, when a new Minute comes up (for Auto Turn On / Off)
 
 
@@ -18,7 +18,7 @@ struct strConfig {
   String ssid;
   String password;
   String mqttServer;
-  
+
   byte  IP[4];
   byte  Netmask[4];
   byte  Gateway[4];
@@ -45,67 +45,109 @@ struct strConfig {
 ** CONFIGURATION HANDLING
 **
 */
+
+void flashLeds(int state)
+{
+
+  if (state == HIGH)
+  {
+    analogWrite(RED_LED, 10);
+    analogWrite(BLUE_LED , 10);
+    analogWrite(GREEN_LED, 10);
+  }
+  else
+  {
+    analogWrite(RED_LED, 0);
+    analogWrite(BLUE_LED , 0);
+    analogWrite(GREEN_LED, 0);
+  }
+
+}
+
 void ConfigureWifi()
 {
-  Serial.println("Configuring Wifi");
+  Serial.println();
+  Serial.println();
+  Serial.print("Connecting to ");
+  Serial.println(config.ssid.c_str());
+
   WiFi.begin (config.ssid.c_str(), config.password.c_str());
-  if (!config.dhcp)
-  {
-    WiFi.config(IPAddress(config.IP[0],config.IP[1],config.IP[2],config.IP[3] ),  IPAddress(config.Gateway[0],config.Gateway[1],config.Gateway[2],config.Gateway[3] ) , IPAddress(config.Netmask[0],config.Netmask[1],config.Netmask[2],config.Netmask[3] ));
+  while (WiFi.status() != WL_CONNECTED) {
+    flashLeds(HIGH);
+    delay(500);
+    Serial.print(".");
+    flashLeds(LOW);
+    delay(500);
   }
+
+  Serial.println("");
+  Serial.println("WiFi connected");
+  Serial.println("IP address: ");
+  Serial.println(WiFi.localIP());
+  
+
+
+
+//  if (!config.dhcp)
+//  {
+//    WiFi.config(IPAddress(config.IP[0], config.IP[1], config.IP[2], config.IP[3] ),  IPAddress(config.Gateway[0], config.Gateway[1], config.Gateway[2], config.Gateway[3] ) , IPAddress(config.Netmask[0], config.Netmask[1], config.Netmask[2], config.Netmask[3] ));
+//  }
+
+
+
 }
 
 void WriteConfig()
 {
 
   Serial.println("Writing Config");
-  EEPROM.write(0,'C');
-  EEPROM.write(1,'F');
-  EEPROM.write(2,'G');
+  EEPROM.write(0, 'C');
+  EEPROM.write(1, 'F');
+  EEPROM.write(2, 'G');
 
-  EEPROM.write(16,config.dhcp);
-  EEPROM.write(17,config.daylight);
-  
-  EEPROMWritelong(18,config.Update_Time_Via_NTP_Every); // 4 Byte
+  EEPROM.write(16, config.dhcp);
+  EEPROM.write(17, config.daylight);
 
-  EEPROMWritelong(22,config.timezone);  // 4 Byte
+  EEPROMWritelong(18, config.Update_Time_Via_NTP_Every); // 4 Byte
 
-
-  EEPROM.write(26,config.LED_R);
-  EEPROM.write(27,config.LED_G);
-  EEPROM.write(28,config.LED_B);
-
-  EEPROM.write(32,config.IP[0]);
-  EEPROM.write(33,config.IP[1]);
-  EEPROM.write(34,config.IP[2]);
-  EEPROM.write(35,config.IP[3]);
-
-  EEPROM.write(36,config.Netmask[0]);
-  EEPROM.write(37,config.Netmask[1]);
-  EEPROM.write(38,config.Netmask[2]);
-  EEPROM.write(39,config.Netmask[3]);
-
-  EEPROM.write(40,config.Gateway[0]);
-  EEPROM.write(41,config.Gateway[1]);
-  EEPROM.write(42,config.Gateway[2]);
-  EEPROM.write(43,config.Gateway[3]);
+  EEPROMWritelong(22, config.timezone); // 4 Byte
 
 
-  WriteStringToEEPROM(64,config.ssid);
-  WriteStringToEEPROM(96,config.password);
-  
-  WriteStringToEEPROM(128,config.ntpServerName);
+  EEPROM.write(26, config.LED_R);
+  EEPROM.write(27, config.LED_G);
+  EEPROM.write(28, config.LED_B);
 
-  EEPROM.write(300,config.AutoTurnOn);
-  EEPROM.write(301,config.AutoTurnOff);
-  EEPROM.write(302,config.TurnOnHour);
-  EEPROM.write(303,config.TurnOnMinute);
-  EEPROM.write(304,config.TurnOffHour);
-  EEPROM.write(305,config.TurnOffMinute);
-  WriteStringToEEPROM(306,config.DeviceName);
-  
-  WriteStringToEEPROM(320,config.mqttServer);
- 
+  EEPROM.write(32, config.IP[0]);
+  EEPROM.write(33, config.IP[1]);
+  EEPROM.write(34, config.IP[2]);
+  EEPROM.write(35, config.IP[3]);
+
+  EEPROM.write(36, config.Netmask[0]);
+  EEPROM.write(37, config.Netmask[1]);
+  EEPROM.write(38, config.Netmask[2]);
+  EEPROM.write(39, config.Netmask[3]);
+
+  EEPROM.write(40, config.Gateway[0]);
+  EEPROM.write(41, config.Gateway[1]);
+  EEPROM.write(42, config.Gateway[2]);
+  EEPROM.write(43, config.Gateway[3]);
+
+
+  WriteStringToEEPROM(64, config.ssid);
+  WriteStringToEEPROM(96, config.password);
+
+  WriteStringToEEPROM(128, config.ntpServerName);
+
+  EEPROM.write(300, config.AutoTurnOn);
+  EEPROM.write(301, config.AutoTurnOff);
+  EEPROM.write(302, config.TurnOnHour);
+  EEPROM.write(303, config.TurnOnMinute);
+  EEPROM.write(304, config.TurnOffHour);
+  EEPROM.write(305, config.TurnOffMinute);
+  WriteStringToEEPROM(306, config.DeviceName);
+
+  WriteStringToEEPROM(320, config.mqttServer);
+
 
   EEPROM.commit();
 }
@@ -143,20 +185,20 @@ boolean ReadConfig()
     config.ssid = ReadStringFromEEPROM(64);
     config.password = ReadStringFromEEPROM(96);
     config.ntpServerName = ReadStringFromEEPROM(128);
-    
-    
+
+
     config.AutoTurnOn = EEPROM.read(300);
     config.AutoTurnOff = EEPROM.read(301);
     config.TurnOnHour = EEPROM.read(302);
     config.TurnOnMinute = EEPROM.read(303);
     config.TurnOffHour = EEPROM.read(304);
     config.TurnOffMinute = EEPROM.read(305);
-    config.DeviceName= ReadStringFromEEPROM(306);
-    
+    config.DeviceName = ReadStringFromEEPROM(306);
+
     config.mqttServer = ReadStringFromEEPROM(320);
-    
+
     return true;
-    
+
   }
   else
   {
@@ -167,22 +209,22 @@ boolean ReadConfig()
 
 /*
 **
-**  NTP 
+**  NTP
 **
 */
 
-const int NTP_PACKET_SIZE = 48; 
-byte packetBuffer[ NTP_PACKET_SIZE]; 
+const int NTP_PACKET_SIZE = 48;
+byte packetBuffer[ NTP_PACKET_SIZE];
 void NTPRefresh()
 {
 
-  
+
 
 
   if (WiFi.status() == WL_CONNECTED)
   {
-    IPAddress timeServerIP; 
-    WiFi.hostByName(config.ntpServerName.c_str(), timeServerIP); 
+    IPAddress timeServerIP;
+    WiFi.hostByName(config.ntpServerName.c_str(), timeServerIP);
     //sendNTPpacket(timeServerIP); // send an NTP packet to a time server
 
 
@@ -196,18 +238,18 @@ void NTPRefresh()
     packetBuffer[13]  = 0x4E;
     packetBuffer[14]  = 49;
     packetBuffer[15]  = 52;
-    UDPNTPClient.beginPacket(timeServerIP, 123); 
+    UDPNTPClient.beginPacket(timeServerIP, 123);
     UDPNTPClient.write(packetBuffer, NTP_PACKET_SIZE);
     UDPNTPClient.endPacket();
 
 
     delay(1000);
-  
+
     int cb = UDPNTPClient.parsePacket();
     if (!cb) {
       Serial.println("NTP no packet yet");
     }
-    else 
+    else
     {
       Serial.print("NTP packet received, length=");
       Serial.println(cb);
@@ -230,7 +272,7 @@ void Second_Tick()
   UnixTimestamp++;
   ConvertUnixTimeStamp(UnixTimestamp +  (config.timezone *  360) , &tempDateTime);
   if (config.daylight) // Sommerzeit beachten
-    if (summertime(tempDateTime.year,tempDateTime.month,tempDateTime.day,tempDateTime.hour,0))
+    if (summertime(tempDateTime.year, tempDateTime.month, tempDateTime.day, tempDateTime.hour, 0))
     {
       ConvertUnixTimeStamp(UnixTimestamp +  (config.timezone *  360) + 3600, &DateTime);
     }
@@ -240,10 +282,13 @@ void Second_Tick()
     }
   else
   {
-      DateTime = tempDateTime;
+    DateTime = tempDateTime;
   }
   Refresh = true;
 }
- 
+
+
+
+
 
 #endif

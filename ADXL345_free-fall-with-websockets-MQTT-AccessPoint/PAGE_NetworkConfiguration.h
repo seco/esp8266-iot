@@ -86,6 +86,8 @@ void send_network_configuration_html()
 			if (server.argName(i) == "password") config.password =    urldecode(server.arg(i)); 
       
       if (server.argName(i) == "mqttServer") config.mqttServer =    urldecode(server.arg(i));
+      Serial.print("send_network_configuration_html-"); Serial.println(config.mqttServer);
+
       
 			if (server.argName(i) == "ip_0") if (checkRange(server.arg(i))) 	config.IP[0] =  server.arg(i).toInt();
 			if (server.argName(i) == "ip_1") if (checkRange(server.arg(i))) 	config.IP[1] =  server.arg(i).toInt();
@@ -128,6 +130,8 @@ void send_network_configuration_values_html()
 	values += "ssid|" + (String) config.ssid + "|input\n";
 	values += "password|" +  (String) config.password + "|input\n";
   values += "mqttServer|" +  (String) config.mqttServer + "|input\n";
+  Serial.print("send_network_configuration_values_html-"); Serial.println(config.mqttServer);
+
  
 	values += "ip_0|" +  (String) config.IP[0] + "|input\n";
 	values += "ip_1|" +  (String) config.IP[1] + "|input\n";
