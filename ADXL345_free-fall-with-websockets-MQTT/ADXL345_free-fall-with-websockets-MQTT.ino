@@ -109,8 +109,8 @@ void setup() {
   Serial.print("Connecting to ");
   Serial.println("shivashambu");
 
-  WiFi.begin("shivashambu", "-86");
-  // WiFi.begin("attwifi", "");
+  WiFi.begin("shivashambu", "2013846675-86");
+  // WiFi.begin("attwifi", "2013846675");
   while (WiFi.status() != WL_CONNECTED) {
     flashLeds(HIGH);
     delay(500);

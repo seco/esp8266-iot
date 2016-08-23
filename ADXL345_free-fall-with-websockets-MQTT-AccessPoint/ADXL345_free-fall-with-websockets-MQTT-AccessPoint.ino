@@ -31,9 +31,11 @@
 
 */
 boolean AdminEnabled = true;    // Enable Admin Mode for a given Time
-const int RED_LED = 15;
+const int RED_LED = 16;
 const int BLUE_LED = 4;
 const int GREEN_LED = 5;
+const int ADMIN_MODE_PIN = 13;
+
 #define   AdminTimeOut 60  // Defines the Time in Seconds, when the Admin-Mode will be diabled
 
 #include <Wire.h>
@@ -77,6 +79,18 @@ void setup ( void ) {
   EEPROM.begin(1024);
   Serial.begin(115200);
   delay(500);
+
+  pinMode(ADMIN_MODE_PIN, OUTPUT);
+
+  if (digitalRead(ADMIN_MODE_PIN) == HIGH)
+  {
+    AdminEnabled = true;
+  }
+  else
+  {
+    AdminEnabled = false;
+  }
+
   Serial.println("Starting ES8266");
   if (!ReadConfig())
   {
@@ -157,22 +171,21 @@ void setup ( void ) {
   {
     WiFi.mode(WIFI_STA);
     ConfigureWifi();
+    setup_adxl();
   }
 }
 
 
 void loop ( void ) {
-  if (AdminEnabled)
-  {
-    if (AdminTimeOutCounter > AdminTimeOut)
-    {
-      AdminEnabled = false;
-      Serial.println("Admin Mode disabled!");
-      WiFi.mode(WIFI_STA);
-      ConfigureWifi();
-      setup_adxl();
-    }
-  }
+  //  if (AdminEnabled)
+  //  {
+  //    if (AdminTimeOutCounter > AdminTimeOut)
+  //    {
+  //      AdminEnabled = false;
+  //      Serial.println("Admin Mode disabled!");
+  //
+  //    }
+  //  }
   if (config.Update_Time_Via_NTP_Every  > 0 )
   {
     if (cNTP_Update > 5 && firstStart)
@@ -218,16 +231,24 @@ void loop ( void ) {
   if (!AdminEnabled)
   {
     loop_adxl_logic();
+
+    yield();
+    analogWrite(BLUE_LED, 300);
+    delay(150);
+    yield();
+    analogWrite(BLUE_LED, 0);
+    delay(200);
+    yield();
   }
   else
-  {    
-    yield();
-    analogWrite(GREEN_LED, 300);
-    delay(100);
-    yield();
-    analogWrite(GREEN_LED, 0);
-    delay(100);
-    yield();    
+  {
+//    yield();
+//    analogWrite(GREEN_LED, 300);
+//    delay(100);
+//    yield();
+//    analogWrite(GREEN_LED, 0);
+//    delay(100);
+//    yield();
   }
 
   if (Refresh)
@@ -244,63 +265,63 @@ void loop ( void ) {
 
 void setup_adxl()
 {
-     //adxl
-    adxl.powerOn(14, 12);
-    pinMode(A0, INPUT);
-    pinMode(BLUE_LED, OUTPUT);
-    pinMode(RED_LED, OUTPUT);
-    pinMode(GREEN_LED, OUTPUT);
+  //adxl
+  adxl.powerOn(14, 12);//sda,scl
+  pinMode(A0, INPUT);
+  pinMode(BLUE_LED, OUTPUT);
+  pinMode(RED_LED, OUTPUT);
+  pinMode(GREEN_LED, OUTPUT);
 
-    //set activity/ inactivity thresholds (0-255)
-    adxl.setActivityThreshold(75); //62.5mg per increment
-    adxl.setInactivityThreshold(75); //62.5mg per increment
-    adxl.setTimeInactivity(10); // how many seconds of no activity is inactive?
+  //set activity/ inactivity thresholds (0-255)
+  adxl.setActivityThreshold(75); //62.5mg per increment
+  adxl.setInactivityThreshold(75); //62.5mg per increment
+  adxl.setTimeInactivity(10); // how many seconds of no activity is inactive?
 
-    //look of activity movement on this axes - 1 == on; 0 == off
-    adxl.setActivityX(1);
-    adxl.setActivityY(1);
-    adxl.setActivityZ(1);
+  //look of activity movement on this axes - 1 == on; 0 == off
+  adxl.setActivityX(1);
+  adxl.setActivityY(1);
+  adxl.setActivityZ(1);
 
-    //look of inactivity movement on this axes - 1 == on; 0 == off
-    adxl.setInactivityX(1);
-    adxl.setInactivityY(1);
-    adxl.setInactivityZ(1);
+  //look of inactivity movement on this axes - 1 == on; 0 == off
+  adxl.setInactivityX(1);
+  adxl.setInactivityY(1);
+  adxl.setInactivityZ(1);
 
-    //look of tap movement on this axes - 1 == on; 0 == off
-    adxl.setTapDetectionOnX(1);
-    adxl.setTapDetectionOnY(1);
-    adxl.setTapDetectionOnZ(1);
+  //look of tap movement on this axes - 1 == on; 0 == off
+  adxl.setTapDetectionOnX(1);
+  adxl.setTapDetectionOnY(1);
+  adxl.setTapDetectionOnZ(1);
 
-    //set values for what is a tap, and what is a double tap (0-255)
-    adxl.setTapThreshold(5000); //62.5mg per increment
-    adxl.setTapDuration(15); //625μs per increment
-    adxl.setDoubleTapLatency(80); //1.25ms per increment
-    adxl.setDoubleTapWindow(200); //1.25ms per increment
+  //set values for what is a tap, and what is a double tap (0-255)
+  adxl.setTapThreshold(5000); //62.5mg per increment
+  adxl.setTapDuration(15); //625μs per increment
+  adxl.setDoubleTapLatency(80); //1.25ms per increment
+  adxl.setDoubleTapWindow(200); //1.25ms per increment
 
-    //set values for what is considered freefall (0-255)
-    adxl.setFreeFallThreshold(0x05); //(5 - 9) recommended - 62.5mg per increment
-    adxl.setFreeFallDuration(0x5); //(20 - 70) recommended - 5ms per increment
+  //set values for what is considered freefall (0-255)
+  adxl.setFreeFallThreshold(0x05); //(5 - 9) recommended - 62.5mg per increment
+  adxl.setFreeFallDuration(0x5); //(20 - 70) recommended - 5ms per increment
 
-    //setting all interupts to take place on int pin 1
-    //I had issues with int pin 2, was unable to reset it
-    adxl.setInterruptMapping( ADXL345_INT_SINGLE_TAP_BIT,   ADXL345_INT1_PIN );
-    adxl.setInterruptMapping( ADXL345_INT_DOUBLE_TAP_BIT,   ADXL345_INT1_PIN );
-    adxl.setInterruptMapping( ADXL345_INT_FREE_FALL_BIT,    ADXL345_INT1_PIN );
-    adxl.setInterruptMapping( ADXL345_INT_ACTIVITY_BIT,     ADXL345_INT1_PIN );
-    adxl.setInterruptMapping( ADXL345_INT_INACTIVITY_BIT,   ADXL345_INT1_PIN );
+  //setting all interupts to take place on int pin 1
+  //I had issues with int pin 2, was unable to reset it
+  adxl.setInterruptMapping( ADXL345_INT_SINGLE_TAP_BIT,   ADXL345_INT1_PIN );
+  adxl.setInterruptMapping( ADXL345_INT_DOUBLE_TAP_BIT,   ADXL345_INT1_PIN );
+  adxl.setInterruptMapping( ADXL345_INT_FREE_FALL_BIT,    ADXL345_INT1_PIN );
+  adxl.setInterruptMapping( ADXL345_INT_ACTIVITY_BIT,     ADXL345_INT1_PIN );
+  adxl.setInterruptMapping( ADXL345_INT_INACTIVITY_BIT,   ADXL345_INT1_PIN );
 
-    //register interupt actions - 1 == on; 0 == off
-    adxl.setInterrupt( ADXL345_INT_SINGLE_TAP_BIT, 1);
-    adxl.setInterrupt( ADXL345_INT_DOUBLE_TAP_BIT, 1);
-    adxl.setInterrupt( ADXL345_INT_FREE_FALL_BIT,  1);
-    adxl.setInterrupt( ADXL345_INT_ACTIVITY_BIT,   1);
-    adxl.setInterrupt( ADXL345_INT_INACTIVITY_BIT, 1);
+  //register interupt actions - 1 == on; 0 == off
+  adxl.setInterrupt( ADXL345_INT_SINGLE_TAP_BIT, 1);
+  adxl.setInterrupt( ADXL345_INT_DOUBLE_TAP_BIT, 1);
+  adxl.setInterrupt( ADXL345_INT_FREE_FALL_BIT,  1);
+  adxl.setInterrupt( ADXL345_INT_ACTIVITY_BIT,   1);
+  adxl.setInterrupt( ADXL345_INT_INACTIVITY_BIT, 1);
 
-    client.setServer(config.mqttServer.c_str(), 1883);
-    client.setCallback(callback);
-    Serial.print("conneting to mqqt server @ ");
-    Serial.println(config.mqttServer);
-        
+  client.setServer(config.mqttServer.c_str(), 1883);
+  client.setCallback(callback);
+  Serial.print("conneting to mqqt server @ ");
+  Serial.println(config.mqttServer);
+
 }
 void loop_adxl_logic() {
 
@@ -369,53 +390,31 @@ void loop_adxl_logic() {
     else if (adxl.isTapSourceOnZ())
       postToServer("{\"zaxis_tapped\":true}");
     //add code here to do when a tap is sensed
+
+    for (int i = 0 ; i < 5; i++)
+      flashLed(RED_LED, 100, 10);
   }
   //freefall
   if (adxl.triggered(interrupts, ADXL345_FREE_FALL)) {
     Serial.println("free fall");
     postToServer("{\"freefall\":true}");
     //add code here to do when a tap is sensed
+    for (int i = 0 ; i < 10; i++)
+      flashLed(RED_LED, 100,1023);
   }
 
-
-  //dht
-  //  float h = dht.readHumidity();
-  //  float t = dht.readTemperature(true);
-  //  if (isnan(h) || isnan(t)) {
-  //    Serial.println("Failed to read from DHT sensor!");
-  //    delay(1000);
-  //    return;
-  //  }
-  //
-  //  Serial.print("Temperature: ");
-  //  Serial.print(t);
-  //  Serial.print(" degrees Celcius Humidity: ");
-  //  Serial.print(h);
-
-  //tmp35
+}
 
 
-  //  int reading = analogRead(A0);
-  //  float voltage = reading * 5.0;
-  //  voltage /= 1024.0;
-  //
-  //  // print out the voltage
-  //  Serial.print(voltage); Serial.println(" volts");
-  //
-  //  // now print out the temperature
-  //  float temperatureC = (voltage - 0.5) * 100 ;  //converting from 10 mv per degree wit 500 mV offset
-  //  //to degrees ((voltage - 500mV) times 100)
-  //  Serial.print(temperatureC); Serial.println(" degrees C");
-  //
-  //  // now convert to Fahrenheit
-  //  float temperatureF = (temperatureC * 9.0 / 5.0) + 32.0;
-  //  Serial.print(temperatureF); Serial.println(" degrees F");
-
-
-  //  flashLeds( HIGH);
-  delay(300);
-  //  flashLeds( LOW);
-  //  delay(1000);
+void flashLed(int led, int del, int pwm_strength)
+{
+  yield();
+  analogWrite(led, pwm_strength);
+  delay(del);
+  yield();
+  analogWrite(led, 0);
+  delay(del);
+  yield();
 }
 
 void callback(char* topic, byte* payload, unsigned int length) {
